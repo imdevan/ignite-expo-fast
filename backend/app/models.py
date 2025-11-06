@@ -8,6 +8,8 @@ from sqlmodel import Field, Relationship, SQLModel
 
 def validate_password_strength(password: str) -> str:
     """Validate password meets complexity requirements."""
+    if len(password) < 8:
+        raise ValueError('Password must be at least 8 characters long')
     if not re.search(r'[A-Z]', password):
         raise ValueError('Password must contain at least 1 uppercase letter')
     if not re.search(r'[a-z]', password):
@@ -33,7 +35,7 @@ class UserCreate(UserBase):
     
     @field_validator('password')
     @classmethod
-    def validate_password(cls, v):
+    def validate_password(cls, v: str) -> str:
         return validate_password_strength(v)
 
 
@@ -44,7 +46,7 @@ class UserRegister(SQLModel):
     
     @field_validator('password')
     @classmethod
-    def validate_password(cls, v):
+    def validate_password(cls, v: str) -> str:
         return validate_password_strength(v)
 
 
@@ -55,10 +57,9 @@ class UserUpdate(UserBase):
     
     @field_validator('password')
     @classmethod
-    def validate_password(cls, v):
-        if v is not None:
-            return validate_password_strength(v)
-        return v
+    def validate_password(cls, v:str | None) -> str:
+        return validate_password_strength(v if v else "")
+
 
 
 class UserUpdateMe(SQLModel):
@@ -72,7 +73,7 @@ class UpdatePassword(SQLModel):
     
     @field_validator('new_password')
     @classmethod
-    def validate_new_password(cls, v):
+    def validate_password(cls, v: str) -> str:
         return validate_password_strength(v)
 
 
@@ -160,5 +161,5 @@ class NewPassword(SQLModel):
     
     @field_validator('new_password')
     @classmethod
-    def validate_new_password(cls, v):
+    def validate_password(cls, v: str) -> str:
         return validate_password_strength(v)
